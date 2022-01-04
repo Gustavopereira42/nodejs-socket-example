@@ -1,0 +1,28 @@
+{
+  "name": "nodejs-socket-example",
+  "version": "1.0.0",
+  "description": "Example of websocket using typescript and mongodb",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gustavopereira42/nodejs-socket-example.git"
+  },
+  "author": "Gustavo Pereira",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Gustavopereira42/nodejs-socket-example/issues"
+  },
+  "homepage": "https://github.com/Gustavopereira42/nodejs-socket-example#readme",
+  "dependencies": {
+    "express": "^4.17.2",
+    "ws": "^8.4.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.13",
+    "@types/ws": "^8.2.2",
+    "typescript": "^4.5.4"
+  }
+}
