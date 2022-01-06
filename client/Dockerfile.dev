@@ -1,0 +1,18 @@
+# base image
+FROM node:12.2.0-alpine
+
+# set working directory
+WORKDIR /usr/app
+
+# Install yarn and other dependencies via apk
+RUN apk update && apk add python g++ make && rm -rf /var/cache/apk/*
+
+# install and cache app dependencies
+COPY package.json .
+COPY package-lock.json .
+RUN npm install
+
+COPY . .
+
+# start app
+CMD ["npm", "run", "serve"]

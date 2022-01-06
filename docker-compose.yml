@@ -1,0 +1,50 @@
+version: '3.7'
+
+services:
+  websocket-client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.dev
+    container_name: websocket-client
+    ports:
+      - 8080:8080
+    volumes:
+      - './client:/usr/app'
+      - '/usr/app/node_modules'
+    networks:
+      - websocket-example-network
+
+  websocket-server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile.dev
+    container_name: websocket-server
+    command: "sh -c 'yarn install && yarn run dev'"
+    ports:
+      - 4000:4000
+    volumes:
+      - './server:/usr/app'
+      - '/usr/app/node_modules'
+    networks:
+      - websocket-example-network
+    depends_on:
+      - mongo
+
+  mongo:
+    # platform: linux/x86_64
+    image: mongo
+    container_name: mongo
+    environment:
+      - MONGO_INITDB_DATABASE=chat
+      - MONGO_INITDB_ROOT_USERNAME=bW9uZ28tdXNlcg==
+      - MONGO_INITDB_ROOT_PASSWORD=bW9uZ28tcGFzc3dk
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./mongo-volume:/data/db
+    networks:
+      - websocket-example-network
+
+networks:
+  websocket-example-network:
+    driver: bridge

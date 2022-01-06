@@ -1,0 +1,14 @@
+# base image
+FROM node:16.13.1
+
+# set working directory
+WORKDIR /usr/app
+
+# install and cache app dependencies
+COPY package.json .
+COPY package-lock.json .
+RUN npm install
+
+COPY . .
+
+CMD ["npm", "run", "dev"]
