@@ -45,7 +45,7 @@
           >
             <span v-if="item.name == name" class="blue--text mr-3">{{ item.message }}</span>
             <v-avatar :color="item.name == name ? 'indigo': 'red'" size="36">
-               <span class="white--text">{{ item.name[0] }}</span>
+               <span class="white--text">{{ item.name ? item.name[0] : item.name }}</span>
             </v-avatar>
             <span v-if="item.name != name" class="blue--text ml-3">{{ item.message }}</span>
           </div>
@@ -54,6 +54,11 @@
     </v-container>
     <v-footer fixed>
       <v-container class="ma-0 pa-0">
+        <v-row no-gutters>
+          <div class="d-flex flex-row">
+            <span v-if="typingText">{{ typingText }}</span>
+          </div>
+        </v-row>
         <v-row no-gutters>
           <v-col>
             <div class="d-flex flex-row align-center">
@@ -72,6 +77,7 @@ export default {
   name: 'HelloWorld',
 
   data: () => ({
+    typingText: null,
     dialog: true,
     name: null,
     chat: [],
@@ -79,11 +85,29 @@ export default {
     websocketConnection: null
   }),
 
+  watch: {
+    message(value) {
+      const chat = {
+        command: 'typing',
+        name: this.name,
+        message: value,
+      };
+      this.websocketConnection.send(JSON.stringify(chat));
+    },
+  },
+
   mounted() {
-    this.websocketConnection = new WebSocket('ws://localhost:4000/');
+    this.websocketConnection = new WebSocket('ws://127.0.0.1:4000/');
     this.websocketConnection.onmessage = (event) => {
       try {
-        this.chat = JSON.parse(event.data);
+        const data = JSON.parse(event.data);
+        if (data.typing === true) {
+          this.typingText = `${data.name} is typing...`;
+        } else if (data.typing === false) {
+          this.typingText = null;
+        } else {
+          this.chat = JSON.parse(event.data);
+        }
       } catch (e) {
         this.chat = [];
       }
@@ -93,6 +117,7 @@ export default {
   methods: {
     send() {
       const chat = {
+        command: 'send',
         name: this.name,
         message: this.message,
       };

@@ -31,6 +31,12 @@ async function run() {
       isAlive?: boolean;
     }
 
+    interface chat {
+      command?: string;
+      name?: string;
+      message?: string;
+    }
+
     wss.on('connection', async (ws: ExtWebSocket) => {
       ws.isAlive = true;
 
@@ -42,24 +48,40 @@ async function run() {
       ws.on('message', async (message: string) => {
         // log the received message and send it back to the client
         console.log('received: %s', message);
-        let chat = null;
+
+        let decodedData: chat = {};
         try {
-          chat = JSON.parse(message);
+          decodedData = JSON.parse(message);
         } catch (e) {
-          chat = null;
+          decodedData = {};
         }
 
-        await client.connect();
-        if (chat) {
-          await collection.insertOne(chat);
-        }
+        const { command } = decodedData;
+        switch (command) {
+          case 'typing':
+            wss.clients.forEach((client) => {
+              if (client != ws) {
+                client.send(JSON.stringify({ typing: !!decodedData.message, name: decodedData.name }));
+              }
+            });
+            break;
 
-        const messages = JSON.stringify(await collection.find({}).toArray());
-        wss.clients.forEach((client) => {
-          if (client != ws) {
-            client.send(messages);
-          }
-        });
+          case 'send':
+            await client.connect();
+            if (decodedData) {
+              const test = await collection.insertOne(decodedData);
+              console.log('--- test:'); // eslint-disable-line no-console
+              console.log(test); // eslint-disable-line no-console
+            }
+
+            const messages = JSON.stringify(await collection.find({}).toArray());
+            wss.clients.forEach((client) => {
+              if (client != ws) {
+                client.send(messages);
+              }
+            });
+            break;
+        }
       });
 
       // send immediatly a feedback to the incoming connection
