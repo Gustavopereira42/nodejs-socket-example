@@ -4,8 +4,20 @@ import * as http from 'http';
 import * as WebSocket from 'ws';
 import { MongoClient, Collection, Db } from 'mongodb';
 
+// Custom WebSocket
+interface ExtWebSocket extends WebSocket {
+  isAlive?: boolean;
+}
+
+interface chat {
+  command?: string;
+  name?: string;
+  message?: string;
+}
+
 // Connection URI
 const uri = "mongodb://bW9uZ28tdXNlcg==:bW9uZ28tcGFzc3dk@mongo:27017/?maxPoolSize=20&w=majority";
+
 // Create a new MongoClient
 const client: MongoClient = new MongoClient(uri);
 async function run() {
@@ -25,17 +37,6 @@ async function run() {
 
     // initialize the WebSocket server instance
     const wss = new WebSocket.Server({ server });
-
-    // Custom WebSocket
-    interface ExtWebSocket extends WebSocket {
-      isAlive?: boolean;
-    }
-
-    interface chat {
-      command?: string;
-      name?: string;
-      message?: string;
-    }
 
     wss.on('connection', async (ws: ExtWebSocket) => {
       ws.isAlive = true;
@@ -69,9 +70,7 @@ async function run() {
           case 'send':
             await client.connect();
             if (decodedData) {
-              const test = await collection.insertOne(decodedData);
-              console.log('--- test:'); // eslint-disable-line no-console
-              console.log(test); // eslint-disable-line no-console
+              await collection.insertOne(decodedData);
             }
 
             const messages = JSON.stringify(await collection.find({}).toArray());
@@ -95,8 +94,6 @@ async function run() {
 
     setInterval(() => {
       wss.clients.forEach((ws: ExtWebSocket) => {
-        console.log(ws.isAlive);
-
         if (!ws.isAlive) return ws.terminate();
 
         ws.isAlive = false;
